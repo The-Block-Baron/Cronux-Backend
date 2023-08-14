@@ -1,6 +1,21 @@
 import User from "../models/userModel.js";
 import Project from "../models/projectModel.js";
 
+export const readProject = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId).populate('projects');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ projects: user.projects });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 export const createProject = async (req, res) => {
     const {name, trackingMethod} = req.body;
 
@@ -13,9 +28,8 @@ export const createProject = async (req, res) => {
     }
 
     try {
-        const project = new Project({ name, trackingMethod, value });
-        await project.save();
-
+        const project = new Project({ name, trackingMethod });
+        await project.save()
         const userId = req.user.id;
         const user = await User.findById(userId);
 
@@ -23,7 +37,6 @@ export const createProject = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Añadir el proyecto al usuario y guardar
         user.projects.push(project._id);
         await user.save();
 
@@ -32,6 +45,7 @@ export const createProject = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
 
 export const updateProject = async (req, res) => {
     const { projectId } = req.params;
@@ -70,3 +84,32 @@ export const updateProject = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const deleteProject = async(req, res ) => {
+    const {projectId} = req.params.id 
+
+    try {
+        const project = await Project.findById(projectId)
+
+        if(!project) {
+            return res.status(404).json({message: "Project not found"})
+        }
+
+        const userId = req.user.id
+        const user = await User.findById(userId)
+
+        if(!user || !user.projects.includes(projectId)){
+            return res.status(403).json({message:"Not authorized to delete this project"})
+        }
+
+        await Project.findByIdAndDelete(projectId)
+
+        user.projects = user.projects.filter(pId => pId.toString() !== projectId.toString())
+
+        await user.save()
+
+        res.status(200).json({message: "Project deleted succesfully"})
+    } catch(error) {
+        res.status(500).json({message: error.message})
+    }
+}
