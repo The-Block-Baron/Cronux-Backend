@@ -21,7 +21,7 @@ const userSchema =  new mongoose.Schema({
         required: true,
         minlength: 6,
     },
-    projects: [{type: mongoose.Schema.Types.ObjectId, ref:'Project'}],
+    projects: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Project' }],
     colorPalette: String
 })
 
