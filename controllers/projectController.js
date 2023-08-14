@@ -86,7 +86,7 @@ export const updateProject = async (req, res) => {
 };
 
 export const deleteProject = async(req, res ) => {
-    const {projectId} = req.params.projectId 
+    const {projectId} = req.params 
 
     try {
         const project = await Project.findById(projectId)

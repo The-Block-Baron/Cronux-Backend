@@ -1,6 +1,6 @@
 import express from 'express'
-import { createProject, readProject, updateProject, deleteProject } from '../controllers/projectController'
-import authMiddleware from '../services/authMiddleware'
+import { createProject, readProject, updateProject, deleteProject } from '../controllers/projectController.js'
+import authMiddleware from '../services/authMiddleware.js'
 
 const router = express.Router()
 
