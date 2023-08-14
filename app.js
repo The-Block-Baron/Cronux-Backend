@@ -5,6 +5,8 @@ import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 
+import authRouter from "./routes/authRoutes.js";
+
 dotenv.config();
 
 const app = express();
@@ -30,6 +32,8 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
+
+app.use('/auth', authRouter)
 
 const port = process.env.PORT || 8000;
 

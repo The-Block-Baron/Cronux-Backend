@@ -2,11 +2,29 @@ import User from '../models/userModel.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv'
+import { body, validationResult } from 'express-validator';
+
+export const validateRegistration = [
+    body('username').isString().withMessage('Username must be a string').isLength({ min: 4 }).withMessage('Username must be at least 4 characters long'),
+    body('email').isEmail().withMessage('Email must be valid'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+]
+
+export const validateLogin = [
+    body('email').isEmail().withMessage('Email must be valid'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+]
+
 
 dotenv.config()
 
 
 export const register = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     const { username, email, password } = req.body;
 
     const existingUser = await User.findOne({ email })
@@ -35,16 +53,21 @@ export const register = async (req, res) => {
 
 
 export const login = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     const { email, password } = req.body
 
     const user = await User.findOne({email})
     if(!user) {
-        res.status(400).json({message: 'User not found'})
+        return res.status(400).json({message: 'User not found'})
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password)
     if(!isPasswordCorrect) {
-        res.status(400).json({message: 'Invalid Password'})
+        return res.status(400).json({message: 'Invalid Password'})
     }
 
     const userForToken = {
