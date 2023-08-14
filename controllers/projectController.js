@@ -2,7 +2,7 @@ import User from "../models/userModel.js";
 import Project from "../models/projectModel.js";
 
 export const createProject = async (req, res) => {
-    const {name, trackingMethod, value} = req.body;
+    const {name, trackingMethod} = req.body;
 
     if(!name || !trackingMethod ) {
         return res.status(400).json({message: "Name and trackingMethod are required"});
@@ -33,3 +33,40 @@ export const createProject = async (req, res) => {
     }
 }
 
+export const updateProject = async (req, res) => {
+    const { projectId } = req.params;
+    const { name, trackingMethod, value } = req.body;
+
+    try {
+        const project = await Project.findById(projectId);
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        if (trackingMethod) {
+            if (!['selectOptions', 'checkbox', 'timeInput'].includes(trackingMethod)) {
+                return res.status(400).json({ message: "Invalid tracking method" });
+            }
+
+            if (trackingMethod === 'selectOptions' && !Array.isArray(value)) {
+                return res.status(400).json({ message: 'Value must be an array for selectOptions' });
+            } else if (trackingMethod === 'checkbox' && typeof value !== 'boolean') {
+                return res.status(400).json({ message: 'Value must be a boolean for checkbox' });
+            } else if (trackingMethod === 'timeInput' && !/^(\d{2}):(\d{2}):(\d{2})$/.test(value)) {
+                return res.status(400).json({ message: 'Value must be in HH:MM:SS format for timeInput' });
+            }
+        }
+
+        // Actualizar el proyecto con los nuevos valores
+        if (name) project.name = name;
+        if (trackingMethod) project.trackingMethod = trackingMethod;
+        if (value) project.value = value;
+
+        await project.save();
+
+        res.status(200).json({ message: 'Project updated successfully', project });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
