@@ -6,6 +6,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 
 import authRouter from "./routes/authRoutes.js";
+import projectRouter from './routes/projectRoutes.js'
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use((err, req, res, next) => {
 });
 
 app.use('/auth', authRouter)
+app.use('/projects', projectRouter)
 
 const port = process.env.PORT || 8000;
 
