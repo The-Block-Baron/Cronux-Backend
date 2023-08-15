@@ -1,5 +1,17 @@
 import mongoose from "mongoose";
 
+const timeEntrySchema = new mongoose.Schema({
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    millisecondsSpent: {
+        type: Number,
+        default: 0
+    }
+});
+
+
 const taskSchema = new mongoose.Schema({
     description: {
         type: String,
@@ -41,13 +53,20 @@ const taskSchema = new mongoose.Schema({
             return this.parent().trackingMethod === 'timeInput' ? null : undefined;
         }
     },
-    timeSpent: {
-        type: Number, // Almacena milisegundos
+    timeEntries: {
+        type: [timeEntrySchema],
+        default: function() {
+            return this.parent().trackingMethod === 'timeInput' ? [] : undefined;
+        }
+    },
+    totalTimeSpent: {
+        type: Number,
         default: function() {
             return this.parent().trackingMethod === 'timeInput' ? 0 : undefined;
         }
     }
 });
+
 
 const projectSchema = new mongoose.Schema({
     name: {
@@ -88,8 +107,21 @@ const projectSchema = new mongoose.Schema({
         default: function() {
             return this.trackingMethod === 'timeInput' ? null : undefined;
         }
+    },
+    timeEntries: {
+        type: [timeEntrySchema], // reutilizamos el timeEntrySchema que definimos anteriormente
+        default: function() {
+            return this.trackingMethod === 'timeInput' ? [] : undefined;
+        }
+    },
+    totalTimeSpent: {
+        type: Number, // Total de milisegundos a nivel de proyecto
+        default: function() {
+            return this.trackingMethod === 'timeInput' ? 0 : undefined;
+        }
     }
 });
+
 
 const Project = mongoose.model('Project', projectSchema)
 
