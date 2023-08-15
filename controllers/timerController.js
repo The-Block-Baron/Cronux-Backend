@@ -85,3 +85,29 @@ export const pauseTaskTimer = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+export const pauseProjectTimer = async (req, res) => {
+    const { projectId } = req.params;
+
+    try {
+        const project = await Project.findById(projectId);
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        if (project.timerRunning) {
+            const currentTime = new Date();
+            const elapsedMillisecs = currentTime - project.timerStartedAt;
+            project.timeInput += elapsedMillisecs;  // Suma el tiempo a la cuenta del proyecto
+            project.timerRunning = false;
+            project.timerStartedAt = null;
+
+            await project.save();
+        }
+
+        res.status(200).json({ message: 'Timer paused for the project.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
