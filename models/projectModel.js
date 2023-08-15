@@ -28,10 +28,26 @@ const taskSchema = new mongoose.Schema({
                     return null;
             }
         }
+    },
+    timerRunning: {
+        type: Boolean,
+        default: function() {
+            return this.parent().trackingMethod === 'timeInput' ? false : undefined;
+        }
+    },
+    timerStartedAt: {
+        type: Date,
+        default: function() {
+            return this.parent().trackingMethod === 'timeInput' ? null : undefined;
+        }
+    },
+    timeSpent: {
+        type: Number, // Almacena milisegundos
+        default: function() {
+            return this.parent().trackingMethod === 'timeInput' ? 0 : undefined;
+        }
     }
 });
-
-
 
 const projectSchema = new mongoose.Schema({
     name: {
@@ -60,8 +76,20 @@ const projectSchema = new mongoose.Schema({
             }
         }
     },
-    tasks: [taskSchema]
-})
+    tasks: [taskSchema],
+    timerRunning: {
+        type: Boolean,
+        default: function() {
+            return this.trackingMethod === 'timeInput' ? false : undefined;
+        }
+    },
+    timerStartedAt: {
+        type: Date,
+        default: function() {
+            return this.trackingMethod === 'timeInput' ? null : undefined;
+        }
+    }
+});
 
 const Project = mongoose.model('Project', projectSchema)
 
