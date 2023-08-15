@@ -30,3 +30,24 @@ export const startTaskTimer = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+export const startProjectTimer = async (req, res) => {
+    const { projectId } = req.params;
+
+    try {
+        const project = await Project.findById(projectId);
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        project.timerRunning = true;
+        project.timerStartedAt = new Date();
+
+        await project.save();
+
+        res.status(200).json({ message: 'Timer started for the project.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
