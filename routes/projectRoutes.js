@@ -13,8 +13,8 @@ router.put('/:projectId', authMiddleware, updateProject)
 
 router.delete('/:projectId', authMiddleware, deleteProject)
 
-router.post('/projects/:projectId/start', startProjectTimer);
+router.post('/:projectId/start', startProjectTimer);
 
-router.post('/projects/:projectId/pause', pauseProjectTimer);
+router.post('/:projectId/pause', pauseProjectTimer);
 
 export default router 
