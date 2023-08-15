@@ -54,7 +54,7 @@ export const startProjectTimer = async (req, res) => {
 
         const today = new Date().toISOString().split('T')[0];
         let timeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
-        
+
         if (!timeEntry) {
             timeEntry = { date: new Date(), milliseconds: 0 };
             project.timeEntries.push(timeEntry);
@@ -91,7 +91,11 @@ export const pauseTaskTimer = async (req, res) => {
             task.timerRunning = false;
             task.timerStartedAt = null;
 
-            project.timeInput += elapsedMillisecs;  // Suma el tiempo a la cuenta del proyecto
+            const today = new Date().toISOString().split('T')[0];
+            let timeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
+            if (timeEntry) {
+                timeEntry.milliseconds += elapsedMillisecs;
+            }
 
             await project.save();
         }
@@ -115,9 +119,14 @@ export const pauseProjectTimer = async (req, res) => {
         if (project.timerRunning) {
             const currentTime = new Date();
             const elapsedMillisecs = currentTime - project.timerStartedAt;
-            project.timeInput += elapsedMillisecs;  // Suma el tiempo a la cuenta del proyecto
             project.timerRunning = false;
             project.timerStartedAt = null;
+
+            const today = new Date().toISOString().split('T')[0];
+            let timeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
+            if (timeEntry) {
+                timeEntry.milliseconds += elapsedMillisecs;
+            }
 
             await project.save();
         }
