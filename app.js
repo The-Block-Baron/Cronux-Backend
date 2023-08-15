@@ -36,8 +36,8 @@ app.use((err, req, res, next) => {
 });
 
 app.use('/auth', authRouter)
-app.use('api/projects', projectRouter)
-app.use('api/projects', taskRouter)
+app.use('/api/projects', projectRouter)
+app.use('/api/projects', taskRouter)
 
 const port = process.env.PORT || 8000;
 

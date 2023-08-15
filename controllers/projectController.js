@@ -63,19 +63,37 @@ export const updateProject = async (req, res) => {
                 return res.status(400).json({ message: "Invalid tracking method" });
             }
 
-            if (trackingMethod === 'selectOptions' && !Array.isArray(value)) {
-                return res.status(400).json({ message: 'Value must be an array for selectOptions' });
-            } else if (trackingMethod === 'checkbox' && typeof value !== 'boolean') {
-                return res.status(400).json({ message: 'Value must be a boolean for checkbox' });
-            } else if (trackingMethod === 'timeInput' && !/^(\d{2}):(\d{2}):(\d{2})$/.test(value)) {
-                return res.status(400).json({ message: 'Value must be in HH:MM:SS format for timeInput' });
+            if (value) {
+                if (trackingMethod === 'selectOptions' && !Array.isArray(value)) {
+                    return res.status(400).json({ message: 'Value must be an array for selectOptions' });
+                } else if (trackingMethod === 'checkbox' && typeof value !== 'boolean') {
+                    return res.status(400).json({ message: 'Value must be a boolean for checkbox' });
+                } else if (trackingMethod === 'timeInput' && !/^(\d{2}):(\d{2}):(\d{2})$/.test(value)) {
+                    return res.status(400).json({ message: 'Value must be in HH:MM:SS format for timeInput' });
+                }
             }
         }
-
-        // Actualizar el proyecto con los nuevos valores
         if (name) project.name = name;
-        if (trackingMethod) project.trackingMethod = trackingMethod;
-        if (value) project.value = value;
+        if (trackingMethod) {
+            project.trackingMethod = trackingMethod;
+            if (!value) {
+                switch (trackingMethod) {
+                    case 'selectOptions':
+                        project.value = [];
+                        break;
+                    case 'checkbox':
+                        project.value = false;
+                        break;
+                    case 'timeInput':
+                        project.value = '00:00:00';
+                        break;
+                    default:
+                        project.value = null;
+                }
+            } else {
+                project.value = value;
+            }
+        }
 
         await project.save();
 
@@ -84,6 +102,8 @@ export const updateProject = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+
 
 export const deleteProject = async(req, res ) => {
     const {projectId} = req.params 
