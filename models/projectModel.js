@@ -60,7 +60,7 @@ const projectSchema = new mongoose.Schema({
             }
         }
     },
-    taks: [taskSchema]
+    tasks: [taskSchema]
 })
 
 const Project = mongoose.model('Project', projectSchema)
