@@ -67,3 +67,23 @@ export const updateTask = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+export const deleteTask = async (req, res) => {
+    const { projectId, taskId } = req.params;
+
+    try {
+        const project = await Project.findById(projectId);
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        project.tasks.id(taskId).remove();
+
+        await project.save();
+
+        res.status(200).json({ message: 'Task deleted successfully' });
+    } catch(error) {
+        res.status(500).json({ message: error.message });
+    }
+}
