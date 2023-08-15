@@ -1,5 +1,25 @@
 import mongoose from "mongoose";
 
+const taskSchema = new mongoose.Schema({
+    description: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    status: {
+        type: String,
+        required: true,
+        enum: ['doing', 'done', 'to do'],
+        default: 'to do'
+    },
+    timer: {
+        type: String,
+        required: true,
+        default: '00:00:00'
+    }
+});
+
+
 const projectSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -26,7 +46,8 @@ const projectSchema = new mongoose.Schema({
                     return null;
             }
         }
-    }
+    },
+    taks: [taskSchema]
 })
 
 const Project = mongoose.model('Project', projectSchema)
