@@ -8,16 +8,29 @@ const taskSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        required: true,
         enum: ['doing', 'done', 'to do'],
         default: 'to do'
     },
-    timer: {
-        type: String,
+    value: {
+        type: mongoose.Schema.Types.Mixed,
         required: true,
-        default: '00:00:00'
+        default: function() {
+            const trackingMethod = this.parent().trackingMethod; 
+
+            switch (trackingMethod) {
+                case 'selectOptions':
+                    return [];
+                case 'checkbox':
+                    return false;
+                case 'timeInput':
+                    return '00:00:00';
+                default:
+                    return null;
+            }
+        }
     }
 });
+
 
 
 const projectSchema = new mongoose.Schema({
