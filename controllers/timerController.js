@@ -67,7 +67,6 @@ export const startProjectTimer = async (req, res) => {
     }
 }
 
-
 export const pauseTaskTimer = async (req, res) => {
     const { projectId, taskId } = req.params;
 
@@ -86,16 +85,33 @@ export const pauseTaskTimer = async (req, res) => {
 
         if (task.timerRunning) {
             const currentTime = new Date();
-            const elapsedMillisecs = currentTime - task.timerStartedAt;
+            const elapsedMillisecs = currentTime - new Date(task.timerStartedAt);
+
             task.timeSpent += elapsedMillisecs;
             task.timerRunning = false;
             task.timerStartedAt = null;
 
+            task.totalTimeSpent += elapsedMillisecs;
+
             const today = new Date().toISOString().split('T')[0];
-            let timeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
-            if (timeEntry) {
-                timeEntry.milliseconds += elapsedMillisecs;
+
+
+            let taskTimeEntry = task.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
+            if (!taskTimeEntry) {
+                taskTimeEntry = { date: new Date(), milliseconds: 0 };
+                task.timeEntries.push(taskTimeEntry);
             }
+            task.timeEntries.id(taskTimeEntry._id).set({ milliseconds: taskTimeEntry.milliseconds + elapsedMillisecs });
+
+            project.totalTimeSpent += elapsedMillisecs;
+
+
+            let projectTimeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
+            if (!projectTimeEntry) {
+                projectTimeEntry = { date: new Date(), milliseconds: 0 };
+                project.timeEntries.push(projectTimeEntry);
+            }
+            project.timeEntries.id(projectTimeEntry._id).set({ milliseconds: projectTimeEntry.milliseconds + elapsedMillisecs });
 
             await project.save();
         }
@@ -105,6 +121,7 @@ export const pauseTaskTimer = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
 
 export const pauseProjectTimer = async (req, res) => {
     const { projectId } = req.params;
@@ -118,21 +135,34 @@ export const pauseProjectTimer = async (req, res) => {
 
         if (project.timerRunning) {
             const currentTime = new Date();
-            const elapsedMillisecs = currentTime - project.timerStartedAt;
+            const elapsedMillisecs = currentTime - new Date(project.timerStartedAt);
+            project.totalTimeSpent += elapsedMillisecs;
             project.timerRunning = false;
             project.timerStartedAt = null;
 
             const today = new Date().toISOString().split('T')[0];
             let timeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
-            if (timeEntry) {
+
+            console.log("Time Entry before update:", timeEntry); 
+
+            if (!timeEntry) {
+                timeEntry = {
+                    date: new Date(),
+                    milliseconds: elapsedMillisecs
+                };
+                project.timeEntries.push(timeEntry);
+            } else {
                 timeEntry.milliseconds += elapsedMillisecs;
             }
+
+            console.log("Time Entry after update:", timeEntry); 
 
             await project.save();
         }
 
         res.status(200).json({ message: 'Timer paused for the project.' });
     } catch (error) {
+        console.error("Error pausing project timer:", error); 
         res.status(500).json({ message: error.message });
     }
 }

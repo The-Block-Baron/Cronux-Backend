@@ -5,7 +5,7 @@ const timeEntrySchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    millisecondsSpent: {
+    milliseconds: {
         type: Number,
         default: 0
     }

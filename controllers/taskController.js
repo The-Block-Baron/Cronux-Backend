@@ -78,7 +78,13 @@ export const deleteTask = async (req, res) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
-        project.tasks.id(taskId).remove();
+        const taskIndex = project.tasks.findIndex(task => task._id.toString() === taskId);
+
+        if (taskIndex === -1) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        project.tasks.splice(taskIndex, 1);
 
         await project.save();
 
