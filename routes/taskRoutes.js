@@ -2,7 +2,8 @@ import express from 'express'
 import {
     createTask, readTasks, updateTask, deleteTask
 } from '../controllers/taskController.js'
-import { startTaskTimer, pauseTaskTimer } from '../controllers/timerController.js'
+import { startTaskTimer } from '../controllers/timerStartController.js'
+import { pauseTaskTimer } from '../controllers/timerPauseController.js'
 
 const router = express.Router()
 

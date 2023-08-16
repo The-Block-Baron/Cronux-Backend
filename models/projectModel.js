@@ -112,6 +112,15 @@ const projectSchema = new mongoose.Schema({
             }
         }
     },
+    totalValue: {
+        type: String,
+        default: function() {
+            if (this.trackingMethod === 'timeInput') {
+                return '00:00:00';
+            }
+            return undefined;
+        }
+    },
     tasks: [taskSchema],
     timerRunning: {
         type: Boolean,

@@ -1,7 +1,8 @@
 import express from 'express'
 import { createProject, readProject, updateProject, deleteProject } from '../controllers/projectController.js'
 import authMiddleware from '../services/authMiddleware.js'
-import { startProjectTimer, pauseProjectTimer } from '../controllers/timerController.js'
+import { startProjectTimer } from '../controllers/timerStartController.js'
+import { pauseProjectTimer } from '../controllers/timerPauseController.js'
 
 const router = express.Router()
 
