@@ -1,3 +1,5 @@
+import Project from "../models/projectModel.js";
+
 const millisToTimeString = (millis) => {
     const hours = Math.floor(millis / 3600000);
     const minutes = Math.floor((millis % 3600000) / 60000);
@@ -24,11 +26,9 @@ export const pauseTaskTimer = async (req, res) => {
         if (task.timerRunning) {
             const currentTime = new Date();
             const elapsedMillisecs = currentTime - new Date(task.timerStartedAt);
-            
-
             task.totalTimeSpent += elapsedMillisecs;
-
-            
+            task.timerRunning = false;
+            task.timerStartedAt = null;
 
             const today = new Date().toISOString().split('T')[0];
 
@@ -37,7 +37,6 @@ export const pauseTaskTimer = async (req, res) => {
             if (!taskTimeEntry) {
                 taskTimeEntry = { date: new Date(), milliseconds: elapsedMillisecs };
                 task.timeEntries.push(taskTimeEntry);
-                await project.save();  
             } else {
                 if (taskTimeEntry._id) {
                     task.timeEntries.id(taskTimeEntry._id).set({ milliseconds: taskTimeEntry.milliseconds + elapsedMillisecs });
@@ -47,11 +46,22 @@ export const pauseTaskTimer = async (req, res) => {
             }
 
             task.value = millisToTimeString(taskTimeEntry.milliseconds); 
+            task.totalValue = millisToTimeString(task.totalTimeSpent);
 
-            task.totalValue = millisToTimeString(task.totalTimeSpent)
+            let projectTimeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
+            const projectTimeToday = projectTimeEntry ? projectTimeEntry.milliseconds : 0;
 
-            task.timerRunning = false;
-            task.timerStartedAt = null;
+            let totalTaskTimeToday = projectTimeToday;
+            for (const t of project.tasks) {
+                const entryToday = t.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
+                if (entryToday) {
+                    totalTaskTimeToday += entryToday.milliseconds;
+                }
+            }
+
+            project.value = millisToTimeString(totalTaskTimeToday);
+            project.totalValue = millisToTimeString(project.totalTimeSpent + task.totalTimeSpent); 
+
             await project.save();
         }
 
@@ -60,6 +70,8 @@ export const pauseTaskTimer = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+
 
 
 
@@ -92,7 +104,6 @@ export const pauseProjectTimer = async (req, res) => {
                 project.timeEntries.push(timeEntry);
                 await project.save();  
             } else {
-
                 if (timeEntry._id) {
                     project.timeEntries.id(timeEntry._id).set({ milliseconds: timeEntry.milliseconds + elapsedMillisecs });
                 } else {
@@ -100,8 +111,18 @@ export const pauseProjectTimer = async (req, res) => {
                 }
             }
             
-            project.value = millisToTimeString(timeEntry.milliseconds);
-            project.totalValue = millisToTimeString(project.totalTimeSpent);
+            let totalTaskTime = 0;
+            let totalTaskTimeToday = 0;
+            for (const task of project.tasks) {
+                totalTaskTime += task.totalTimeSpent;
+                const taskEntryToday = task.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
+                if (taskEntryToday) {
+                    totalTaskTimeToday += taskEntryToday.milliseconds;
+                }
+            }
+
+            project.value = millisToTimeString(timeEntry.milliseconds + totalTaskTimeToday);
+            project.totalValue = millisToTimeString(project.totalTimeSpent + totalTaskTime);
 
             await project.save();
         }
