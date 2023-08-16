@@ -70,6 +70,13 @@ export const startProjectTimer = async (req, res) => {
 export const pauseTaskTimer = async (req, res) => {
     const { projectId, taskId } = req.params;
 
+    const millisToTimeString = (millis) => {
+        const hours = Math.floor(millis / 3600000);
+        const minutes = Math.floor((millis % 3600000) / 60000);
+        const seconds = Math.floor((millis % 60000) / 1000);
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
     try {
         const project = await Project.findById(projectId);
 
@@ -86,33 +93,28 @@ export const pauseTaskTimer = async (req, res) => {
         if (task.timerRunning) {
             const currentTime = new Date();
             const elapsedMillisecs = currentTime - new Date(task.timerStartedAt);
-
-            task.timeSpent += elapsedMillisecs;
-            task.timerRunning = false;
-            task.timerStartedAt = null;
+            
 
             task.totalTimeSpent += elapsedMillisecs;
 
-            const today = new Date().toISOString().split('T')[0];
+            
 
+            const today = new Date().toISOString().split('T')[0];
 
             let taskTimeEntry = task.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
             if (!taskTimeEntry) {
                 taskTimeEntry = { date: new Date(), milliseconds: 0 };
                 task.timeEntries.push(taskTimeEntry);
             }
-            task.timeEntries.id(taskTimeEntry._id).set({ milliseconds: taskTimeEntry.milliseconds + elapsedMillisecs });
 
-            project.totalTimeSpent += elapsedMillisecs;
+                task.timeEntries.id(taskTimeEntry._id).set({ milliseconds: taskTimeEntry.milliseconds + elapsedMillisecs });
+                task.value = millisToTimeString(taskTimeEntry.milliseconds + elapsedMillisecs);  // Actualizar value con el tiempo para hoy
 
+            
+            task.totalValue = millisToTimeString(task.totalTimeSpent); // Actualizar totalValue con el tiempo total
 
-            let projectTimeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
-            if (!projectTimeEntry) {
-                projectTimeEntry = { date: new Date(), milliseconds: 0 };
-                project.timeEntries.push(projectTimeEntry);
-            }
-            project.timeEntries.id(projectTimeEntry._id).set({ milliseconds: projectTimeEntry.milliseconds + elapsedMillisecs });
-
+            task.timerRunning = false;
+            task.timerStartedAt = null;
             await project.save();
         }
 
@@ -121,6 +123,8 @@ export const pauseTaskTimer = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+
 
 
 export const pauseProjectTimer = async (req, res) => {

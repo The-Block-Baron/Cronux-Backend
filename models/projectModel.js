@@ -11,6 +11,14 @@ const timeEntrySchema = new mongoose.Schema({
     }
 });
 
+const millisToTimeString = (millis) => {
+    const hours = Math.floor(millis / 3600000);
+    const minutes = Math.floor((millis % 3600000) / 60000);
+    const seconds = Math.floor((millis % 60000) / 1000);
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
+
 
 const taskSchema = new mongoose.Schema({
     description: {
@@ -27,7 +35,7 @@ const taskSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.Mixed,
         required: true,
         default: function() {
-            const trackingMethod = this.parent().trackingMethod; 
+            const trackingMethod = this.parent().trackingMethod;
 
             switch (trackingMethod) {
                 case 'selectOptions':
@@ -39,6 +47,15 @@ const taskSchema = new mongoose.Schema({
                 default:
                     return null;
             }
+        }
+    },
+    totalValue: {
+        type: String,
+        default: function() {
+            if (this.parent().trackingMethod === 'timeInput') {
+                return '00:00:00';
+            }
+            return undefined;
         }
     },
     timerRunning: {
