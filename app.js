@@ -13,23 +13,22 @@ dotenv.config();
 
 const app = express();
 
-// Middleware para manejar seguridad básica
+
 app.use(helmet());
 
-// Middleware CORS para permitir solicitudes cruzadas (si tu frontend y backend están en diferentes dominios)
+
 app.use(cors());
 
-// Middleware para registro de solicitudes HTTP
+
 app.use(morgan('combined'));
 
-// Middleware para parsear cuerpos JSON
+
 app.use(express.json());
 
-// Middleware para parsear cuerpos de URL codificados
+
 app.use(express.urlencoded({ extended: true }));
 
 
-// Manejo de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');

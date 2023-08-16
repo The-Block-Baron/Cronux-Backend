@@ -2,7 +2,7 @@ import Project from "../models/projectModel.js";
 
 export const createTask = async (req, res) => {
     const { projectId } = req.params;
-    const { description } = req.body; // Y otros campos necesarios para la tarea
+    const { description } = req.body; 
 
     try {
         const project = await Project.findById(projectId);
@@ -11,7 +11,7 @@ export const createTask = async (req, res) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
-        const newTask = { description };  // Puedes agregar otros campos aquí si es necesario
+        const newTask = { description }; 
         project.tasks.push(newTask);
 
         await project.save();
@@ -40,7 +40,7 @@ export const readTasks = async (req, res) => {
 
 export const updateTask = async (req, res) => {
     const { projectId, taskId } = req.params;
-    const { description, status, value } = req.body;  // Y cualquier otro campo que desees actualizar
+    const { description, status, value } = req.body; 
 
     try {
         const project = await Project.findById(projectId);
@@ -55,7 +55,6 @@ export const updateTask = async (req, res) => {
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        // Actualiza los valores aquí
         if (description) task.description = description;
         if (status) task.status = status;
         if (value) task.value = value;

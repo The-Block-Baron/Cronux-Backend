@@ -135,13 +135,13 @@ const projectSchema = new mongoose.Schema({
         }
     },
     timeEntries: {
-        type: [timeEntrySchema], // reutilizamos el timeEntrySchema que definimos anteriormente
+        type: [timeEntrySchema], 
         default: function() {
             return this.trackingMethod === 'timeInput' ? [] : undefined;
         }
     },
     totalTimeSpent: {
-        type: Number, // Total de milisegundos a nivel de proyecto
+        type: Number, 
         default: function() {
             return this.trackingMethod === 'timeInput' ? 0 : undefined;
         }
