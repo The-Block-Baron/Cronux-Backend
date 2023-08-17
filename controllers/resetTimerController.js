@@ -50,7 +50,7 @@ export const resetTaskTimer = async (req, res) => {
 
     try {
         const project = await Project.findOne({ "_id": projectId, "tasks._id": taskId }, { "tasks.$": 1 });
-        
+
         if (!project || !project.tasks || project.tasks.length === 0) {
             return res.status(404).json({ message: 'Task not found.' });
         }
@@ -58,10 +58,8 @@ export const resetTaskTimer = async (req, res) => {
         const task = project.tasks[0];
         const today = new Date().toISOString().split('T')[0];
         const taskTimeEntryToday = task.timeEntries && task.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
-
         let taskMillisToday = taskTimeEntryToday ? taskTimeEntryToday.milliseconds : 0;
 
-        // Actualizar la tarea y el proyecto simultáneamente
         const updateOperations = {
             $set: {
                 "tasks.$.timerRunning": false,
@@ -77,32 +75,30 @@ export const resetTaskTimer = async (req, res) => {
             }
         };
 
-        if (project.timeEntries) {
-            const projectTimeEntryTodayIndex = project.timeEntries.findIndex(entry => entry.date.toISOString().split('T')[0] === today);
-            if (projectTimeEntryTodayIndex !== -1) {
-                updateOperations.$inc[`timeEntries.${projectTimeEntryTodayIndex}.milliseconds`] = -taskMillisToday;
+        await Project.updateOne({ "_id": projectId, "tasks._id": taskId }, updateOperations);
+
+        // Busca el proyecto para actualizar timeEntries y value/totalValue
+        const fullProject = await Project.findById(projectId);
+        if (fullProject && fullProject.timeEntries) {
+            const projectTimeEntryToday = fullProject.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
+
+            if (projectTimeEntryToday) {
+                projectTimeEntryToday.milliseconds -= taskMillisToday;
+            } else {
+                fullProject.timeEntries.push({
+                    date: new Date(today),
+                    milliseconds: -taskMillisToday
+                });
             }
+
+            fullProject.value = millisToTimeString(projectTimeEntryToday ? projectTimeEntryToday.milliseconds : 0);
+            fullProject.totalValue = millisToTimeString(fullProject.totalTimeSpent);
+
+            await fullProject.save();
         }
-
-        const updateResult = await Project.updateOne(
-            { "_id": projectId, "tasks._id": taskId },
-            updateOperations
-        );
-
-        if (updateResult.nModified === 0) {
-            return res.status(404).json({ message: 'Task not found or no changes were made.' });
-        }
-
-        // Actualizar los valores de `value` y `totalValue` del proyecto después de la actualización
-        const updatedProject = await Project.findById(projectId);
-        updatedProject.value = millisToTimeString(updatedProject.totalTimeSpent);
-        updatedProject.totalValue = millisToTimeString(updatedProject.totalTimeSpent);
-        await updatedProject.save();
 
         res.status(200).json({ message: 'Task timer has been reset and project total time adjusted.' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
-
-
