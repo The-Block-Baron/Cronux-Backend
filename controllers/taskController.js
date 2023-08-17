@@ -40,7 +40,7 @@ export const readTasks = async (req, res) => {
 
 export const updateTask = async (req, res) => {
     const { projectId, taskId } = req.params;
-    const { description, status, value } = req.body; 
+    const { description, status, value, totalValue } = req.body;
 
     try {
         const project = await Project.findById(projectId);
@@ -55,17 +55,31 @@ export const updateTask = async (req, res) => {
             return res.status(404).json({ message: 'Task not found' });
         }
 
+        if (value && !/^(\d{2}):(\d{2}):(\d{2})$/.test(value)) {
+            return res.status(400).json({ message: 'Value must be in HH:MM:SS format for timeInput' });
+        }
+
+        if (totalValue && !/^(\d{2}):(\d{2}):(\d{2})$/.test(totalValue)) {
+            return res.status(400).json({ message: 'TotalValue must be in HH:MM:SS format for timeInput' });
+        }
+
+        if (status && !['doing', 'done', 'to do'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status value' });
+        }
+
         if (description) task.description = description;
         if (status) task.status = status;
         if (value) task.value = value;
+        if (totalValue) task.totalValue = totalValue; // Here is the update for totalValue
 
         await project.save();
 
         res.status(200).json({ message: 'Task updated successfully', task });
-    } catch(error) {
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
+
 
 export const deleteTask = async (req, res) => {
     const { projectId, taskId } = req.params;
