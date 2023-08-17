@@ -17,18 +17,14 @@ export const readProject = async (req, res) => {
 }
 
 export const createProject = async (req, res) => {
-    const {name, trackingMethod} = req.body;
+    const {name} = req.body;
 
-    if(!name || !trackingMethod ) {
-        return res.status(400).json({message: "Name and trackingMethod are required"});
-    }
-
-    if(!['selectOptions', 'checkbox', 'timeInput'].includes(trackingMethod)) {
-        return res.status(400).json({message: "Invalid tracking method"});
+    if(!name ) {
+        return res.status(400).json({message: "Name is required"});
     }
 
     try {
-        const project = new Project({ name, trackingMethod });
+        const project = new Project({ name, trackingMethod: 'timeInput' });
         await project.save()
         const userId = req.user.id;
         const user = await User.findById(userId);
@@ -49,7 +45,7 @@ export const createProject = async (req, res) => {
 
 export const updateProject = async (req, res) => {
     const { projectId } = req.params;
-    const { name, trackingMethod, value } = req.body;
+    const { name, value, totalValue } = req.body;
 
     try {
         const project = await Project.findById(projectId);
@@ -58,42 +54,16 @@ export const updateProject = async (req, res) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
-        if (trackingMethod) {
-            if (!['selectOptions', 'checkbox', 'timeInput'].includes(trackingMethod)) {
-                return res.status(400).json({ message: "Invalid tracking method" });
-            }
+        if (value && !/^(\d{2}):(\d{2}):(\d{2})$/.test(value)) {
+            return res.status(400).json({ message: 'Value must be in HH:MM:SS format for timeInput' });
+        }
+        if (totalValue && !/^(\d{2}):(\d{2}):(\d{2})$/.test(totalValue)) {
+            return res.status(400).json({ message: 'Value must be in HH:MM:SS format for timeInput' });
+        }
 
-            if (value) {
-                if (trackingMethod === 'selectOptions' && !Array.isArray(value)) {
-                    return res.status(400).json({ message: 'Value must be an array for selectOptions' });
-                } else if (trackingMethod === 'checkbox' && typeof value !== 'boolean') {
-                    return res.status(400).json({ message: 'Value must be a boolean for checkbox' });
-                } else if (trackingMethod === 'timeInput' && !/^(\d{2}):(\d{2}):(\d{2})$/.test(value)) {
-                    return res.status(400).json({ message: 'Value must be in HH:MM:SS format for timeInput' });
-                }
-            }
-        }
         if (name) project.name = name;
-        if (trackingMethod) {
-            project.trackingMethod = trackingMethod;
-            if (!value) {
-                switch (trackingMethod) {
-                    case 'selectOptions':
-                        project.value = [];
-                        break;
-                    case 'checkbox':
-                        project.value = false;
-                        break;
-                    case 'timeInput':
-                        project.value = '00:00:00';
-                        break;
-                    default:
-                        project.value = null;
-                }
-            } else {
-                project.value = value;
-            }
-        }
+        if (value) project.value = value;
+        if (totalValue) project.totalValue = totalValue
 
         await project.save();
 
