@@ -5,6 +5,7 @@ import {
 import { startTaskTimer } from '../controllers/timerStartController.js'
 import { pauseTaskTimer } from '../controllers/timerPauseController.js'
 import authMiddleware from '../services/authMiddleware.js'
+import { resetTaskTimer } from '../controllers/resetTimerController.js'
 
 const router = express.Router()
 
@@ -19,5 +20,7 @@ router.delete('/:projectId/tasks/:taskId', authMiddleware, deleteTask)
 router.post('/:projectId/tasks/:taskId/start', authMiddleware, startTaskTimer);
 
 router.post('/:projectId/tasks/:taskId/pause', authMiddleware, pauseTaskTimer);
+
+router.post('/:projectId/tasks/:taskId/reset', authMiddleware, resetTaskTimer);
 
 export default router
