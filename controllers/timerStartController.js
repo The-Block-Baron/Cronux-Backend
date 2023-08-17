@@ -62,6 +62,10 @@ export const startProjectTimer = async (req, res) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
+        if (project.status === "done") {
+            return res.status(400).json({ message: 'Cannot start timer for a project marked as done.' });
+        }
+
         if (project.timerRunning) {
             return res.status(400).json({ message: 'Project timer is already running.' });
         }
