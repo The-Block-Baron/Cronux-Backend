@@ -26,14 +26,16 @@ export const pauseTaskTimer = async (req, res) => {
         if (task.timerRunning) {
             const currentTime = new Date();
             const elapsedMillisecs = currentTime - new Date(task.timerStartedAt);
+            
             task.totalTimeSpent += elapsedMillisecs;
             task.timerRunning = false;
             task.timerStartedAt = null;
-
+        
             const today = new Date().toISOString().split('T')[0];
-
+        
+            // Update task's time entries
             let taskTimeEntry = task.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
-
+        
             if (!taskTimeEntry) {
                 taskTimeEntry = { date: new Date(), milliseconds: elapsedMillisecs };
                 task.timeEntries.push(taskTimeEntry);
@@ -44,32 +46,38 @@ export const pauseTaskTimer = async (req, res) => {
                     taskTimeEntry.milliseconds += elapsedMillisecs; 
                 }
             }
-
+        
             task.value = millisToTimeString(taskTimeEntry.milliseconds); 
             task.totalValue = millisToTimeString(task.totalTimeSpent);
-
+        
+            // Update project's time entries
             let projectTimeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
-            const projectTimeToday = projectTimeEntry ? projectTimeEntry.milliseconds : 0;
-
-            let totalTaskTimeToday = projectTimeToday;
-            for (const t of project.tasks) {
-                const entryToday = t.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
-                if (entryToday) {
-                    totalTaskTimeToday += entryToday.milliseconds;
-                }
+        
+            if (!projectTimeEntry) {
+                projectTimeEntry = { date: new Date(), milliseconds: elapsedMillisecs };
+                project.timeEntries.push(projectTimeEntry);
+            } else {
+                projectTimeEntry.milliseconds += elapsedMillisecs;
             }
-
+        
+            project.totalTimeSpent += elapsedMillisecs;
+            project.timerRunning = false;
+            project.timerStartedAt = null;
+            
+            // Calculate total time for the project WITHOUT double counting the current task
+            let totalTaskTimeToday = projectTimeEntry.milliseconds;
+        
             project.value = millisToTimeString(totalTaskTimeToday);
-            project.totalValue = millisToTimeString(project.totalTimeSpent + task.totalTimeSpent); 
-
+            project.totalValue = millisToTimeString(project.totalTimeSpent); 
+        
             await project.save();
         }
-
         res.status(200).json({ message: 'Timer paused for the task.' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
+
 
 
 
