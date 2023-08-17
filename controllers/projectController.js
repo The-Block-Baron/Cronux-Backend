@@ -45,7 +45,7 @@ export const createProject = async (req, res) => {
 
 export const updateProject = async (req, res) => {
     const { projectId } = req.params;
-    const { name, value, totalValue } = req.body;
+    const { name, value, totalValue, status } = req.body;
 
     try {
         const project = await Project.findById(projectId);
@@ -57,13 +57,19 @@ export const updateProject = async (req, res) => {
         if (value && !/^(\d{2}):(\d{2}):(\d{2})$/.test(value)) {
             return res.status(400).json({ message: 'Value must be in HH:MM:SS format for timeInput' });
         }
+        
         if (totalValue && !/^(\d{2}):(\d{2}):(\d{2})$/.test(totalValue)) {
-            return res.status(400).json({ message: 'Value must be in HH:MM:SS format for timeInput' });
+            return res.status(400).json({ message: 'TotalValue must be in HH:MM:SS format for timeInput' });
+        }
+
+        if (status && !['doing', 'done', 'to do'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status provided' });
         }
 
         if (name) project.name = name;
         if (value) project.value = value;
-        if (totalValue) project.totalValue = totalValue
+        if (totalValue) project.totalValue = totalValue;
+        if (status) project.status = status;
 
         await project.save();
 
