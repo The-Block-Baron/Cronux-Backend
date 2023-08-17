@@ -23,6 +23,7 @@ export const startTaskTimer = async (req, res) => {
 
         task.timerRunning = true;
         task.timerStartedAt = new Date();
+        task.status = "doing";
 
         const today = new Date().toISOString().split('T')[0];
         let timeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
@@ -49,9 +50,18 @@ export const startProjectTimer = async (req, res) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
+        if (project.timerRunning) {
+            return res.status(400).json({ message: 'Project timer is already running.' });
+        }
+
+        const taskWithTimer = project.tasks.find(task => task.timerRunning);
+        if (taskWithTimer) {
+            return res.status(400).json({ message: 'Cannot start project timer when there is a task with timer running.' });
+        }
 
         project.timerRunning = true;
         project.timerStartedAt = new Date();
+        project.status = "doing"; 
 
         const today = new Date().toISOString().split('T')[0];
         let timeEntry = project.timeEntries.find(entry => entry.date.toISOString().split('T')[0] === today);
