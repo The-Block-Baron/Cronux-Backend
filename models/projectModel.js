@@ -11,15 +11,6 @@ const timeEntrySchema = new mongoose.Schema({
     }
 });
 
-const millisToTimeString = (millis) => {
-    const hours = Math.floor(millis / 3600000);
-    const minutes = Math.floor((millis % 3600000) / 60000);
-    const seconds = Math.floor((millis % 60000) / 1000);
-
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-};
-
-
 const taskSchema = new mongoose.Schema({
     description: {
         type: String,
@@ -32,57 +23,32 @@ const taskSchema = new mongoose.Schema({
         default: 'to do'
     },
     value: {
-        type: mongoose.Schema.Types.Mixed,
+        type: String,
         required: true,
-        default: function() {
-            const trackingMethod = this.parent().trackingMethod;
-
-            switch (trackingMethod) {
-                case 'selectOptions':
-                    return [];
-                case 'checkbox':
-                    return false;
-                case 'timeInput':
-                    return '00:00:00';
-                default:
-                    return null;
-            }
-        }
+        default: '00:00:00'  
     },
     totalValue: {
         type: String,
-        default: function() {
-            if (this.parent().trackingMethod === 'timeInput') {
-                return '00:00:00';
-            }
-            return undefined;
-        }
+        default: '00:00:00'  
     },
     timerRunning: {
         type: Boolean,
-        default: function() {
-            return this.parent().trackingMethod === 'timeInput' ? false : undefined;
-        }
+        default: false  
     },
     timerStartedAt: {
         type: Date,
-        default: function() {
-            return this.parent().trackingMethod === 'timeInput' ? null : undefined;
-        }
+        default: null 
     },
     timeEntries: {
-        type: [timeEntrySchema],
-        default: function() {
-            return this.parent().trackingMethod === 'timeInput' ? [] : undefined;
-        }
+        type: [timeEntrySchema], 
+        default: []  
     },
     totalTimeSpent: {
-        type: Number,
-        default: function() {
-            return this.parent().trackingMethod === 'timeInput' ? 0 : undefined;
-        }
+        type: Number, 
+        default: 0  
     }
 });
+
 
 
 const projectSchema = new mongoose.Schema({
@@ -94,59 +60,42 @@ const projectSchema = new mongoose.Schema({
     trackingMethod: {
         type: String,
         required: true,
-        enum: ['selectOptions', 'checkbox', 'timeInput'],
+        enum: ['timeInput'],  
+        default: 'timeInput'
     },
     value: {
-        type: mongoose.Schema.Types.Mixed,
+        type: String,
         required: true,
-        default: function() {
-            switch (this.trackingMethod) {
-                case 'selectOptions':
-                    return [];
-                case 'checkbox':
-                    return false;
-                case 'timeInput':
-                    return '00:00:00';
-                default:
-                    return null;
-            }
-        }
+        default: '00:00:00'  
     },
     totalValue: {
         type: String,
-        default: function() {
-            if (this.trackingMethod === 'timeInput') {
-                return '00:00:00';
-            }
-            return undefined;
-        }
+        default: '00:00:00'  
     },
     tasks: [taskSchema],
+    status: {
+        type: String,
+        enum: ['doing', 'done', 'to do'],
+        default: 'to do'
+    },
     timerRunning: {
         type: Boolean,
-        default: function() {
-            return this.trackingMethod === 'timeInput' ? false : undefined;
-        }
+        default: false  
     },
     timerStartedAt: {
         type: Date,
-        default: function() {
-            return this.trackingMethod === 'timeInput' ? null : undefined;
-        }
+        default: null  
     },
     timeEntries: {
         type: [timeEntrySchema], 
-        default: function() {
-            return this.trackingMethod === 'timeInput' ? [] : undefined;
-        }
+        default: [] 
     },
     totalTimeSpent: {
         type: Number, 
-        default: function() {
-            return this.trackingMethod === 'timeInput' ? 0 : undefined;
-        }
+        default: 0 
     }
 });
+
 
 
 const Project = mongoose.model('Project', projectSchema)
