@@ -22,6 +22,7 @@ export const resetProjectTimer = async (req, res) => {
                     totalValue: '00:00:00',
                     timeEntries: [],
                     status: 'to do',
+                    streak:0,
                     "tasks.$[].timerRunning": false,     
                     "tasks.$[].timerStartedAt": null,
                     "tasks.$[].totalTimeSpent": 0,
