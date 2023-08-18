@@ -91,10 +91,11 @@ export const startProjectTimer = async (req, res) => {
             project.timeEntries.push(timeEntry);
         }
 
+        project.calculateStreak();
+
         await project.save();
         res.status(200).json({ message: 'Timer started for the project.' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
-
