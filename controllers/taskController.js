@@ -2,7 +2,12 @@ import Project from "../models/projectModel.js";
 
 export const createTask = async (req, res) => {
     const { projectId } = req.params;
-    const { description } = req.body; 
+    const { description, priority } = req.body; 
+
+    const validPriorities = ['Immediate', 'Ongoing', 'Future'];
+    if (priority && !validPriorities.includes(priority)) {
+        return res.status(400).json({ message: 'Invalid priority value' });
+    }
 
     try {
         const project = await Project.findById(projectId);
@@ -11,7 +16,7 @@ export const createTask = async (req, res) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
-        const newTask = { description }; 
+        const newTask = { description, priority: priority || 'Ongoing' }; // Si no se proporciona prioridad, se establece "Ongoing" como predeterminado.
         project.tasks.push(newTask);
 
         await project.save();
@@ -21,6 +26,7 @@ export const createTask = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
 
 export const readTasks = async (req, res) => {
     const { projectId } = req.params;
