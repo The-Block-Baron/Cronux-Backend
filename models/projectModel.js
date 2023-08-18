@@ -31,6 +31,15 @@ const taskSchema = new mongoose.Schema({
         type: String,
         default: '00:00:00'  
     },
+    tags: {
+        type: [String],
+        default: []
+    },
+    priority: {
+        type: String,
+        enum: ['Immediate', 'Ongoing', 'Future'],
+        default: 'Ongoing'
+    },
     timerRunning: {
         type: Boolean,
         default: false  
@@ -104,15 +113,6 @@ const projectSchema = new mongoose.Schema({
         type: Number, 
         default: 0 
     },
-    tags: {
-        type: [String],
-        default: []
-    },
-    priority: {
-        type: String,
-        enum: ['Immediate', 'Ongoing', 'Future'],
-        default: 'Ongoing'
-    }
 });
 
 

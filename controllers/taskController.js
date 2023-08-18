@@ -2,7 +2,7 @@ import Project from "../models/projectModel.js";
 
 export const createTask = async (req, res) => {
     const { projectId } = req.params;
-    const { description, priority } = req.body; 
+    const { description, priority, tags } = req.body; 
 
     const validPriorities = ['Immediate', 'Ongoing', 'Future'];
     if (priority && !validPriorities.includes(priority)) {
@@ -16,7 +16,11 @@ export const createTask = async (req, res) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
-        const newTask = { description, priority: priority || 'Ongoing' }; // Si no se proporciona prioridad, se establece "Ongoing" como predeterminado.
+        const newTask = { 
+            description, 
+            priority: priority || 'Ongoing', 
+            tags: Array.isArray(tags) ? tags : []  
+        };
         project.tasks.push(newTask);
 
         await project.save();
@@ -26,6 +30,7 @@ export const createTask = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
 
 
 export const readTasks = async (req, res) => {
@@ -46,7 +51,12 @@ export const readTasks = async (req, res) => {
 
 export const updateTask = async (req, res) => {
     const { projectId, taskId } = req.params;
-    const { description, status, value, totalValue } = req.body;
+    const { description, status, value, totalValue, tags, priority } = req.body;
+
+    const validPriorities = ['Immediate', 'Ongoing', 'Future'];
+    if (priority && !validPriorities.includes(priority)) {
+        return res.status(400).json({ message: 'Invalid priority value' });
+    }
 
     try {
         const project = await Project.findById(projectId);
@@ -76,7 +86,10 @@ export const updateTask = async (req, res) => {
         if (description) task.description = description;
         if (status) task.status = status;
         if (value) task.value = value;
-        if (totalValue) task.totalValue = totalValue; // Here is the update for totalValue
+        if (totalValue) task.totalValue = totalValue; 
+
+        if (tags) task.tags = tags;
+        if (priority) task.priority = priority;
 
         await project.save();
 
@@ -85,6 +98,7 @@ export const updateTask = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
 
 
 export const deleteTask = async (req, res) => {
