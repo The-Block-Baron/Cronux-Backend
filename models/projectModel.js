@@ -71,13 +71,23 @@ const projectSchema = new mongoose.Schema({
     totalValue: {
         type: String,
         default: '00:00:00'  
-    },
-    tasks: [taskSchema],
+    },    
     status: {
         type: String,
         enum: ['doing', 'done', 'to do'],
         default: 'to do'
     },
+    tags: {
+        type: [String],
+        default: []
+    },
+    priority: {
+        type: String,
+        enum: ['Immediate', 'Ongoing', 'Future'],
+        default: 'Ongoing'
+    },
+    tasks: [taskSchema],
+
     timerRunning: {
         type: Boolean,
         default: false  
@@ -93,6 +103,15 @@ const projectSchema = new mongoose.Schema({
     totalTimeSpent: {
         type: Number, 
         default: 0 
+    },
+    tags: {
+        type: [String],
+        default: []
+    },
+    priority: {
+        type: String,
+        enum: ['Immediate', 'Ongoing', 'Future'],
+        default: 'Ongoing'
     }
 });
 
